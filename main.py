@@ -6,15 +6,148 @@ from prophet.plot import plot_plotly
 from plotly import graph_objs as go
 import pandas as pd
 import plotly.express as px 
-from newsapi import NewsApiClient  
+from newsapi import NewsApiClient 
+import plotly.graph_objs as go
+# from mutual_fund_forecasting_integration import load_mutual_fund_data, predict_mutual_fund
+import ta  # Technical Analysis library, install using: pip install ta
+import requests  # Add this line to import the requests library for making API requests
+
+
+
+# def plot_indicators(data):
+#     # Add MACD
+#     data['macd'] = ta.trend.macd_diff(data['Close'])
+#     data['signal'] = ta.trend.macd_signal(data['Close'])
+#     fig_macd = go.Figure()
+#     fig_macd.add_trace(go.Scatter(x=data['Date'], y=data['macd'], name='MACD'))
+#     fig_macd.add_trace(go.Scatter(x=data['Date'], y=data['signal'], name='Signal'))
+#     fig_macd.update_layout(title='MACD Indicator', xaxis_title='Date', yaxis_title='MACD Value')
+#     st.plotly_chart(fig_macd)
+
+#     # Add EMA (Exponential Moving Average)
+#     data['ema_short'] = ta.trend.ema_indicator(data['Close'], window=12)
+#     data['ema_long'] = ta.trend.ema_indicator(data['Close'], window=26)
+#     fig_ema = go.Figure()
+#     fig_ema.add_trace(go.Scatter(x=data['Date'], y=data['Close'], name='Stock Price'))
+#     fig_ema.add_trace(go.Scatter(x=data['Date'], y=data['ema_short'], name='EMA Short'))
+#     fig_ema.add_trace(go.Scatter(x=data['Date'], y=data['ema_long'], name='EMA Long'))
+#     fig_ema.update_layout(title='EMA Indicator', xaxis_title='Date', yaxis_title='EMA Value')
+#     st.plotly_chart(fig_ema)
+
+#     # Add RSI (Relative Strength Index)
+#     data['rsi'] = ta.momentum.rsi(data['Close'])
+#     fig_rsi = go.Figure()
+#     fig_rsi.add_trace(go.Scatter(x=data['Date'], y=data['rsi'], name='RSI'))
+#     fig_rsi.update_layout(title='RSI Indicator', xaxis_title='Date', yaxis_title='RSI Value')
+#     st.plotly_chart(fig_rsi)
+
+#     # Add SMA (Simple Moving Average)
+#     data['sma_short'] = ta.trend.sma_indicator(data['Close'], window=12)
+#     data['sma_long'] = ta.trend.sma_indicator(data['Close'], window=26)
+#     fig_sma = go.Figure()
+#     fig_sma.add_trace(go.Scatter(x=data['Date'], y=data['Close'], name='Stock Price'))
+#     fig_sma.add_trace(go.Scatter(x=data['Date'], y=data['sma_short'], name='SMA Short'))
+#     fig_sma.add_trace(go.Scatter(x=data['Date'], y=data['sma_long'], name='SMA Long'))
+#     fig_sma.update_layout(title='SMA Indicator', xaxis_title='Date', yaxis_title='SMA Value')
+#     st.plotly_chart(fig_sma)
+
+# Function to fetch cryptocurrency data from CoinGecko API
+def get_crypto_data(api_key):
+    url = "https://api.coingecko.com/api/v3/coins/markets"
+    params = {
+        "vs_currency": "usd",
+        "order": "market_cap_desc",
+        "per_page": 5,
+        "page": 1,
+        "sparkline": False,
+        "price_change_percentage": "24h",
+        "key": api_key,
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+    return data
+
+def plot_crypto_data(data):
+    st.subheader("Top 5 Cryptocurrencies by Market Cap")
+    for coin in data:
+        st.write(f"**{coin['name']} ({coin['symbol'].upper()})**")
+        st.write(f"Price: ${coin['current_price']}")
+        st.write(f"24h Price Change: {coin['price_change_percentage_24h']}%")
+        st.write("---")
+
+def plot_indicators(data, title):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=data['Date'], y=data['Close'], name='Stock Price'))
+
+    # Plot indicators for both historical and predicted data
+    fig.add_trace(go.Scatter(x=data['Date'], y=data['macd'], name='MACD'))
+    fig.add_trace(go.Scatter(x=data['Date'], y=data['signal'], name='Signal'))
+    fig.add_trace(go.Scatter(x=data['Date'], y=data['ema_short'], name='EMA Short'))
+    fig.add_trace(go.Scatter(x=data['Date'], y=data['ema_long'], name='EMA Long'))
+    fig.add_trace(go.Scatter(x=data['Date'], y=data['rsi'], name='RSI'))
+    fig.add_trace(go.Scatter(x=data['Date'], y=data['sma_short'], name='SMA Short'))
+    fig.add_trace(go.Scatter(x=data['Date'], y=data['sma_long'], name='SMA Long'))
+
+    fig.update_layout(title=f'{title} with Indicators', xaxis_title='Date', yaxis_title='Value')
+    st.plotly_chart(fig)
+
+
+def plot_candlestick_chart(data):
+    fig = go.Figure(data=[go.Candlestick(x=data['Date'],
+                                         open=data['Open'],
+                                         high=data['High'],
+                                         low=data['Low'],
+                                         close=data['Close'])])
+    fig.update_layout(title=f'Candlestick Chart for ',
+                      xaxis_title='Date',
+                      yaxis_title='Stock Price',
+                      xaxis_rangeslider_visible=True)
+    st.plotly_chart(fig)
+
+def redirect_to_page(page_url):
+    st.markdown(
+        f"""
+        <a href="{page_url}" target="_blank" rel="noopener noreferrer">
+            <button style="padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">Get Mutual Fund Forecast</button>
+        </a>
+        """
+        , unsafe_allow_html=True
+    )
+
+def redirect_to_page_crypto(page_url):
+    st.markdown(
+        f"""
+        <a href="{page_url}" target="_blank" rel="noopener noreferrer">
+            <button style="padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">Get Mutual Fund Forecast</button>
+        </a>
+        """
+        , unsafe_allow_html=True
+    )
+
+def get_stock_news():
+    newsapi = NewsApiClient(api_key='8e26b930de804bb4a48f8e909f11689a')  # Replace with your NewsAPI key d82c64fade7b44dfb1912dcb4985ca43
+
+    # Fetch news articles related to the specified stock symbol
+    articles = newsapi.get_everything(q='stocks', language='en', sort_by='relevancy', page_size=10)
+
+    return articles['articles']
 
 def get_gold_news():
-    newsapi = NewsApiClient(api_key='')  # Replace with your NewsAPI key 8e26b930de804bb4a48f8e909f11689a
+    newsapi = NewsApiClient(api_key='8e26b930de804bb4a48f8e909f11689a')  # Replace with your NewsAPI key 8e26b930de804bb4a48f8e909f11689a
 
     # Fetch news articles related to gold
     articles = newsapi.get_everything(q='gold', language='en', sort_by='relevancy')
 
     return articles['articles']
+
+def get_crypto_news():
+    newsapi = NewsApiClient(api_key='8e26b930de804bb4a48f8e909f11689a')  # Replace with your NewsAPI key 8e26b930de804bb4a48f8e909f11689a
+
+    # Fetch news articles related to gold
+    articles = newsapi.get_everything(q='crypto', language='en', sort_by='relevancy')
+
+    return articles['articles']
+
 
 def calculate_investment_percentage():
     # Replace these with actual data or calculations for percentages
@@ -29,6 +162,25 @@ def calculate_investment_percentage():
         'Gold': gold_percentage,
         'Crypto': crypto_percentage
     }
+
+def add_indicators(data):
+    # Add MACD
+    data['macd'] = ta.trend.macd_diff(data['Close'])
+    data['signal'] = ta.trend.macd_signal(data['Close'])
+
+    # Add EMA (Exponential Moving Average)
+    data['ema_short'] = ta.trend.ema_indicator(data['Close'], window=12)
+    data['ema_long'] = ta.trend.ema_indicator(data['Close'], window=26)
+
+    # Add RSI (Relative Strength Index)
+    data['rsi'] = ta.momentum.rsi(data['Close'])
+
+    # Add SMA (Simple Moving Average)
+    data['sma_short'] = ta.trend.sma_indicator(data['Close'], window=12)
+    data['sma_long'] = ta.trend.sma_indicator(data['Close'], window=26)
+
+
+
 
 def main():
 
@@ -93,6 +245,32 @@ def main():
     
     st.sidebar.title('Navigation')
     option = st.sidebar.selectbox('Go to', ('Stock', 'Mutual Fund', 'Gold', 'Crypto'))
+
+    if option == 'Stock':
+        # ... (rest of your code)
+
+        symbol = None  # Declare symbol outside the if block
+
+        # Button to fetch news for the selected stock
+        if st.button("Get News for Selected Stock"):
+            # Clear existing elements
+            st.subheader("Latest News")
+            chart_container = st.empty()  # Create an empty container for the chart
+            chart_container.text("Fetching news...")
+
+            stock_news = get_stock_news()
+
+            # Display news articles in a loop
+            for news in stock_news:
+                col1, col2 = st.columns([1, 4])
+                col1.image(news['urlToImage'], use_column_width=True)
+                col2.write(f"**{news['title']}**")
+                col2.write(news['description'])
+                col2.write(f"Source: {news['source']['name']}")
+                col2.write("---")
+
+                # Update the chart container with the new content or remove it
+              
 
     if option == 'Stock':
         @st.cache_data
@@ -160,6 +338,9 @@ def main():
         st.write(forecast.tail())
 
         fig1 = plot_plotly(m, forecast)
+        predicted_data = forecast[['ds', 'yhat']].rename(columns={'ds': 'Date', 'yhat': 'Close'})
+        add_indicators(predicted_data)
+        plot_indicators(predicted_data, 'Predicted Data')
         st.plotly_chart(fig1)
 
         st.subheader("Forecast Components")
@@ -206,27 +387,27 @@ def main():
 
         st.sidebar.title(f"Overall Recommendation for the next 6 months: ")
 
-        st.sidebar.markdown(f'<div style="background-color:{recommendation_color}; padding: 10px; border-radius: 5px;"><h2>{aggregated_recommendation}</h2></div>', unsafe_allow_html=True)
+        st.sidebar.markdown(f'<div style="background-color:{recommendation_color}; padding: 10px; border-radius: 5px;"><h2>\
+        {aggregated_recommendation}</h2></div>', unsafe_allow_html=True)
+
+
+        plot_candlestick_chart(data)
+        add_indicators(data)
+        plot_indicators(data, 'Historical Data')   
 
 
 
     elif option == 'Mutual Fund':
         st.title("Mutual Fund Information")
 
+
         # Add content for displaying mutual fund recommendations
         st.subheader("Recommended Mutual Funds")
+        # Save the current page to session state
+        if st.button("Get Mutual Fund Forecast"):
+            redirect_to_page('http://127.0.0.1:5000/')  # Replace with your desired URL
 
-        # Example list of recommended mutual funds
-        recommended_funds = [
-            "Vanguard Total Stock Market Index Fund",
-            "Fidelity 500 Index Fund",
-            "T. Rowe Price Blue Chip Growth Fund",
-            # Add more recommended mutual funds here
-        ]
-
-        # Display recommended mutual funds
-        for fund in recommended_funds:
-            st.write(fund)
+        
 
     elif option == 'Gold':
         st.title("Gold Related")
@@ -244,6 +425,19 @@ def main():
             col2.write("---")
     elif option == 'Crypto':
         st.title("Crypto Information")
+        
+        # Add content for displaying mutual fund recommendations
+        st.subheader("Recommended Mutual Funds")
+        # Save the current page to session state
+        if st.button("Get Mutual Fund Forecast"):
+            redirect_to_page_crypto('http://127.0.0.1:5001/')  # Replace with your desired URL
+
+        crypto_api_key = '457B73C1-9597-4509-9923-1B4B5EF3E6B5'  # Replace with your actual API key
+        crypto_data = get_crypto_data(crypto_api_key)
+
+        # Display cryptocurrency data
+        plot_crypto_data(crypto_data)
+
         # ... (code for cryptocurrency)
 
     # Display pie chart in sidebar for investment percentages
